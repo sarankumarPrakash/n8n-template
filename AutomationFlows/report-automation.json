@@ -1,0 +1,341 @@
+{
+  "name": "weekly-report",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "17c22155-d6ae-4adf-aedd-5ff9cfb9ece4",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        260
+      ],
+      "id": "878dc1f1-e068-4a28-9549-9f0ef1670276",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://jsonplaceholder.typicode.com/posts",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "d27249d6-0049-437c-af05-f07884fb6612",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "361c132c-02ad-4da0-8710-2b373c299a8e",
+              "name": "id",
+              "value": "={{ $json.userId }}",
+              "type": "string"
+            },
+            {
+              "id": "772e84fd-54e7-483e-abe0-73984092dda0",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "07bce54e-8da5-4636-887d-d7c047e3b09f",
+              "name": "body",
+              "value": "={{ $json.body }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        440,
+        0
+      ],
+      "id": "d1f39c59-9e5f-4442-adfd-1837c74d8939",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1sRWHoJgEE8m40wAzkL2Jvki50fn2RtzJj_r5WBx1tOg",
+          "mode": "list",
+          "cachedResultName": "postcomments",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sRWHoJgEE8m40wAzkL2Jvki50fn2RtzJj_r5WBx1tOg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sRWHoJgEE8m40wAzkL2Jvki50fn2RtzJj_r5WBx1tOg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "userId": "={{ $json.userId }}",
+            "title": "={{ $json.title }}",
+            "comments": "={{ $('HTTP Request').item.json.body }}"
+          },
+          "matchingColumns": [
+            "userId"
+          ],
+          "schema": [
+            {
+              "id": "userId",
+              "displayName": "userId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Id",
+              "displayName": "Id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "comments",
+              "displayName": "comments",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        660,
+        0
+      ],
+      "id": "f34a1583-0b80-4f7a-bfac-01f515bee6b4",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "MPvqpYUGAt6gXT0V",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "=data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        0
+      ],
+      "id": "8a5cf908-4564-4c82-b9cb-a29ed2975682",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "sendTo": "cybercues@gmail.com",
+        "subject": "=Weekly report ",
+        "emailType": "text",
+        "message": "=Hi Team \n\n       Please Find teh attachment for the weekly report . \n\n\nThanks \nSarankumar P \n\n",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {}
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1100,
+        0
+      ],
+      "id": "6a7021a1-3d97-41dc-966d-b903b8f17581",
+      "name": "Send a message",
+      "webhookId": "c4b8086a-915d-4dc2-bcc4-8d57a922e329",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AWdJZkifZ4BymCOv",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "##📝 Workflow Overview:\n\n**Weekly Report Automation Purpose:**\n\nAutomatically fetch data from a placeholder API, format and log it in a Google Sheet, convert it to a downloadable file, and email it as a weekly report to the designated team.\n\n##📌 Step-by-Step Process\n\nSchedule Trigger :\nTriggers every week on Monday at 10:00 AM to start the workflow.\n\nHTTP Request\nFetches mock post data from **https://jsonplaceholder.typicode.com/posts**\n\nEdit Fields (Set Node) :\nExtracts specific fields (userId, title, body) from the response.\n\nAppend to Google Sheet\nAdds or updates the extracted data to a connected Google Sheet.\n\nConvert to File\nConverts the updated data into a file format (e.g., CSV or JSON) for attachment.\n\nSend Email (Gmail Node)\nSends the converted file to {your Email} with a standard message and subject: \"Weekly report\".\n\n🔁 Trigger Options\nYou can manually trigger the workflow using the Manual Trigger node for testing or on-demand runs.\n\n",
+        "height": 660,
+        "width": 540
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -100
+      ],
+      "id": "a160aa77-6e4d-4fb1-9cc4-6efaa5215bb8",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b1eef7ea-0671-4771-9519-1ee2dd41e2c5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2a40570b3af64bf81af3ce3fb41cdd360118dab3c5efb79c58e0c17eaad8095b"
+  },
+  "id": "99OqZecMj2Rt9oDI",
+  "tags": []
+}
