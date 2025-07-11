@@ -1,0 +1,311 @@
+{
+  "name": "Phsihing-mail-remover",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "4fbaa193-5bad-4a75-b14a-a38e1e3e1cf9",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AWdJZkifZ4BymCOv",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a security engineer. Analyze the following email JSON object and classify it as one of the following:\n\n- \"phishing\"\n- \"suspicious\"\n- \"not suspicious\"\n\nUse these criteria:\n- Sender’s domain or reputation\n- Urgent or manipulative language\n- Suspicious links or attachment references\n- Spoofed or mismatched sender/domain\n- Requests for sensitive data like credentials or payments\n- Grammar mistakes or unusual formatting\n\nReturn the **exact same email object**, adding:\n1. `\"error\"`: classification result — must be one of \"phishing\",  or \"not suspicious\"\n2. `\"reason\"`: a short explanation why it was classified that way\n\n⛔ Do not remove or modify any existing fields.\n✅ Output must be a single, valid JSON object.\n\n[\n  {\n    \"id\": \"{{ $json.id }}\",\n    \"threadId\": \"{{ $json.threadId }}\",\n    \"snippet\" :{{ $json.snippet }}\n    \"From\": \"{{ $json.From }}\",\n    \"Subject\": \"{{ $json.Subject }}\",\n    \"To\": \"{{ $json.To }}\",\n    \"reason\": `\"why it is suspicious\"`\n    \"error\":\"phishing\" || \"not suspicious\"\n  }\n]\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "id": "e063a3c1-6217-457b-b75c-7adb3e6d0036",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        360,
+        200
+      ],
+      "id": "b4ba744f-edea-4403-82f0-2a008ddc95c3",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Hqr0jT2Gb9cJ04Ka",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        460,
+        240
+      ],
+      "id": "5e342d56-80c0-4d05-bdad-31d30c21d57c",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "821b54bb-d548-47a2-9edb-67b86422a3d9",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "=phishing",
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": "=",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1020,
+        0
+      ],
+      "id": "77559181-0ce0-476b-9de6-1c426a6029cd",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "messageId": "={{ $json.id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1520,
+        20
+      ],
+      "id": "d86481b1-4bb6-4282-9f16-91916f7b705a",
+      "name": "Delete a message",
+      "webhookId": "ef6516a5-088f-46e1-a1a1-d40c70f7f5aa",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AWdJZkifZ4BymCOv",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "16YtpSaSNNfhm_QIv0iiWg1cPLWl0Mf1wBhe05cvJ12U",
+          "mode": "list",
+          "cachedResultName": "phishing mail",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16YtpSaSNNfhm_QIv0iiWg1cPLWl0Mf1wBhe05cvJ12U/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16YtpSaSNNfhm_QIv0iiWg1cPLWl0Mf1wBhe05cvJ12U/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        1280,
+        20
+      ],
+      "id": "80ead1f7-0f25-425d-b929-77f2bd6c5545",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "MPvqpYUGAt6gXT0V",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.all()[0].json.output;\n\n// Step 1: Extract the actual JSON string between ```json and ```\nconst match = raw.match(/```json\\s*([\\s\\S]*?)\\s*```/);\n\nif (!match || !match[1]) {\n  throw new Error(\"No valid JSON found between ```json blocks.\");\n}\n\n// Step 2: Parse the clean JSON\nconst cleanedJson = match[1];\nconst parsed = JSON.parse(cleanedJson);\n\n// Step 3: Return as items\nreturn parsed.map(item => ({ json: item }));\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        720,
+        180
+      ],
+      "id": "faabea7b-1bf0-4991-89d9-40cc52508087",
+      "name": "Code Tool"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().flatMap(item => {\n  let raw = item.json.output;\n\n  // Step 1: Remove ```json ... ``` wrapper if present\n  const match = raw.match(/```json\\s*([\\s\\S]*?)\\s*```/);\n  if (match && match[1]) {\n    raw = match[1];\n  }\n\n  // Step 2: Parse the JSON string\n  let parsed;\n  try {\n    parsed = JSON.parse(raw);\n  } catch (error) {\n    throw new Error(\"Failed to parse JSON from 'output': \" + error.message);\n  }\n\n  // Step 3: Return parsed JSON(s) in n8n format\n  if (Array.isArray(parsed)) {\n    return parsed.map(obj => ({ json: obj }));\n  } else {\n    return [{ json: parsed }];\n  }\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        0
+      ],
+      "id": "25e58db9-98c8-4e78-b8c6-6de0dd073940",
+      "name": "Code"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Delete a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "05aef07a-6787-49a0-9b16-e42e1694eb11",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2a40570b3af64bf81af3ce3fb41cdd360118dab3c5efb79c58e0c17eaad8095b"
+  },
+  "id": "ThodOhQtNjMZJLwn",
+  "tags": []
+}
