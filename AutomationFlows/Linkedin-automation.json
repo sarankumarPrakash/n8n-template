@@ -1,0 +1,328 @@
+{
+  "name": "linkedin -automation",
+  "nodes": [
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        480,
+        200
+      ],
+      "id": "7d3c3299-f08e-4867-b0c7-b146de8a2220",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        320,
+        200
+      ],
+      "id": "bc193be1-9cd6-4513-bb41-312ef030334d",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Hqr0jT2Gb9cJ04Ka",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        220,
+        0
+      ],
+      "id": "2b033348-ab3d-436b-8557-18f66d7b75b7",
+      "name": "When chat message received",
+      "webhookId": "f3dfc4a6-4052-49af-953b-3ed7e2d51623"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a social media strategist and LinkedIn personal branding expert.\n\nYour task: Write a high-converting LinkedIn post based on the topic below. This post is for a strategist who helps clients grow their personal brand and generate inbound leads using AI, automation, and storytelling.\n\n---\n\n📌 Guidelines for the Post:\n- Use a **storytelling style** written in **first person (my point of view)**\n- Share how **I helped a client** using my systems and strategies\n- Mention a realistic **timeframe** (e.g., “last Tuesday” or “this week”)\n- Include a **relatable moment or situation** at the start\n- Use 🔹 **bullet points** or ✅ steps to break down the system used\n- Ensure post length is **300+ words**\n- Use LinkedIn formatting best practices: **emojis**, **white space**, **bolded CTAs**\n- End with a **call to action** (e.g., “Comment below”, “DM me”, etc.)\n- **Do not** include any image prompt or visual request\n- **do not** include any user name just add as clinet \n\n---\n\n✏️ **Post Topic to Use:**\n{{ $json.chatInput }}\n\n---\n\nReturn only the full LinkedIn post text, ready for publishing.\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "id": "45961103-d3e9-451b-bbf4-c9eb7921083d",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an AI visual strategist that converts LinkedIn posts into **real photo-style image prompts** (not AI art or illustrations), designed to attract clients and professionals on LinkedIn.\n\n📌 Objective:\nGenerate a **photo-realistic image prompt** based on the post below. The image should:\n\n- Look like a real photo (not digital art or 3D)\n- Contain **no human faces or full people**\n- Show hands, devices, objects, workspaces, screens, tools, environments, etc.\n- Feel professional, minimal, trustworthy, and aspirational\n- Communicate the branded message or value of the post visually\n- Include contextual elements (like laptops, dashboards, charts, documents, office setups)\n\n---\n\n🎯 **Post Content to Convert:**\n{{ $json.output }}\n\n---\n\n🎨 **Output Format:**\nProvide only the photo-style prompt. Make sure it clearly communicates the core idea and appeal of the post without using human faces or models.\n\n\n{\n  \"binary\": {\n    \"data\": {\n      \"mimeType\": \"image/png\",\n      \"fileName\": \"img-LP5tGNtfbe9hvy5tTFPw0JL2.png\"\n    }\n  }\n}\n\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        800,
+        0
+      ],
+      "id": "04415f31-4832-4355-b3b9-d734dc1fab3a",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('AI Agent').item.json.output }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        800,
+        240
+      ],
+      "id": "0cc98eac-b5b2-46d3-a5b3-a2abf727d4f4",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/images/generations",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"dall-e-3\",\n  \"prompt\": \"={{ $json.cleanedOutput }}\",\n  \"size\": \"1024x1024\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1400,
+        0
+      ],
+      "id": "53b63047-804f-47c3-8a15-daa5d27fb553",
+      "name": "HTTP Request",
+      "credentials": {
+        "openAiApi": {
+          "id": "Hqr0jT2Gb9cJ04Ka",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const imageUrl = $json.data[0].url;\n\nreturn [{ json: { imageUrl } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1620,
+        0
+      ],
+      "id": "abf37171-11bd-4181-808f-03e427988d32",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.imageUrl }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "image"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1800,
+        0
+      ],
+      "id": "71bccc14-68ce-43db-8cef-53fa8ec63e44",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "person": "kb5sRQEyH3",
+        "text": "={{ $('AI Agent').item.json.output }}",
+        "shareMediaCategory": "IMAGE",
+        "binaryPropertyName": "image",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.linkedIn",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        260
+      ],
+      "id": "868ed33e-77b3-414c-afc7-3f3eb0797afc",
+      "name": "Create a post",
+      "credentials": {
+        "linkedInOAuth2Api": {
+          "id": "kO2RwoMtgTzls3Zi",
+          "name": "LinkedIn account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let data = $input.all()\nconst outputData = data[0].json.output.replace(/\\n/g, ' ');\n\nreturn [\n  {\n    json: {\n      cleanedOutput: outputData\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1160,
+        0
+      ],
+      "id": "83474838-7dc2-47c2-a812-c264caf9ffa3",
+      "name": "Code"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Create a post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "89d198d8-8f0d-4fc8-a5b0-769a3d48ed35",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2a40570b3af64bf81af3ce3fb41cdd360118dab3c5efb79c58e0c17eaad8095b"
+  },
+  "id": "RCc0qrVH6rTDQJV7",
+  "tags": []
+}
